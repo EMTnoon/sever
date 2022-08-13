@@ -30,7 +30,9 @@ app.all("*", async (req, res, next) => {
 
         let admin_token_sql = "SELECT * FROM `admin` WHERE `token` = ?"
         let adminResult = await db.async.all(admin_token_sql, [token])
-        if (adminResult.err != null || adminResult.rows.length == 0) {
+        let nowTime = new Date().getTime()
+        let token_time = adminResult.rows[0].token_time
+        if (adminResult.err != null || adminResult.rows.length == 0 || token_time - nowTime <10000) {
             res.send({
                 code: 403,
                 msg: "请先登录"

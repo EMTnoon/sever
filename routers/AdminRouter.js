@@ -7,18 +7,16 @@ router.post("/login", async (req, res) => {
 
     let { account, password } = req.body;
     let { err, rows } = await db.async.all("select * from `admin` where `account` = ? AND `password` = ?", [account, password])
-
     if (err == null && rows.length > 0) {
-
         let login_token = uuidv4();
-        let update_token_sql = "UPDATE `admin` SET `token` = ? where `id` = ?"
-
-        await db.async.run(update_token_sql, [login_token, rows[0].id])
-
+        // token有效时间
+        let token_time = new Date().getTime() + 3600000
+        let update_token_sql = "UPDATE `admin` SET `token` = ?,`token_time` = ?  where `id` = ?"
+        await db.async.run(update_token_sql, [login_token,token_time,rows[0].id])
         let admin_info = rows[0]
         admin_info.token = login_token
         admin_info.password = ""
-
+        admin_info.token_time = token_time
         res.send({
             code: 200,
             msg: "登录成功",
